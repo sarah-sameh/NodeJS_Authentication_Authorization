@@ -4,9 +4,24 @@ const User = require("../models/User");
 const asyncHandler = require("../utilities/AsyncHandler");
 const CustomeAPIError = require("../utilities/errors/CustomeAPIError");
 
-exports.getUsers = (req, res, next) => {};
-exports.getOneUser = (req, res, next) => {};
-
+exports.getUsers = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  res.status(200).json({
+    success: true,
+    data: users,
+  });
+});
+exports.getOneUser = asyncHandler(async (req, res, next) => {
+  const id = req.params.id;
+  const user = await User.findById(id);
+  if (!user) {
+    return next(new CustomeAPIError("User not found", 404));
+  }
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
 
 exports.register = asyncHandler(async (req, res, next) => {
   const newUser = { ...req.body };
@@ -44,7 +59,22 @@ exports.login = asyncHandler(async (req, res, next) => {
     token: token,
   });
 });
-exports.updateUser = (req, res, next) => {};
+exports.updateUser = asyncHandler(async (req, res, next) => {
+  const id = req.params.id;
+  const updatedUserData = req.body;
+
+  const user = await User.findByIdAndUpdate(id, updatedUserData, { new: true });
+
+  if (!user) {
+    return next(new CustomeAPIError("User not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
 exports.deleteUser = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
 
